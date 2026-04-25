@@ -30,7 +30,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     customer: customerId,
     customer_email: customerId ? undefined : email,
     success_url: `${process.env.APP_URL}/dashboard?upgraded=true`,
-    cancel_url: `${process.env.APP_URL}/membership`,
+    cancel_url: `https://terravian.systems/cancelled?return=${encodeURIComponent(process.env.APP_URL + '/membership')}`,
     subscription_data: {
       metadata: { tier },
     },
