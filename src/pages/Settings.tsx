@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/AppLayout';
 import { useAuth } from '../contexts/AuthContext';
+import { redirectToPortal } from '../lib/stripe';
 
 export default function Settings() {
   const { user, logout } = useAuth();
@@ -106,9 +107,23 @@ export default function Settings() {
                 {user?.tier === 'standard' ? '$29/month' : user?.tier === 'premium' ? '$79/month' : 'Free forever'}
               </div>
             </div>
-            <button className="btn btn-outline btn-sm" onClick={() => navigate('/membership')}>
-              Manage plan
-            </button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {user?.tier !== 'free' && (
+                <button
+                  className="btn btn-ghost btn-sm"
+                  onClick={async () => {
+                    const customerId = (user as any).stripeCustomerId;
+                    if (customerId) await redirectToPortal(customerId);
+                    else navigate('/membership');
+                  }}
+                >
+                  Manage billing
+                </button>
+              )}
+              <button className="btn btn-outline btn-sm" onClick={() => navigate('/membership')}>
+                {user?.tier === 'free' ? 'Upgrade' : 'Change plan'}
+              </button>
+            </div>
           </div>
         </div>
 

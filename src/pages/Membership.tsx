@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import AppLayout from '../components/AppLayout';
 import { useAuth } from '../contexts/AuthContext';
+import { redirectToCheckout } from '../lib/stripe';
 
 const TIERS = [
   {
@@ -59,6 +61,17 @@ const TIERS = [
 
 export default function Membership() {
   const { user } = useAuth();
+  const [loading, setLoading] = useState<string | null>(null);
+
+  const handleUpgrade = async (tier: 'standard' | 'premium') => {
+    if (!user) return;
+    setLoading(tier);
+    try {
+      await redirectToCheckout(tier, user.email);
+    } finally {
+      setLoading(null);
+    }
+  };
 
   return (
     <AppLayout title="Membership">
@@ -111,9 +124,14 @@ export default function Membership() {
             <button
               className={`btn btn-sm ${tier.id === user?.tier ? 'btn-ghost' : 'btn-gold'}`}
               style={{ marginTop: 'auto' }}
-              disabled={tier.ctaDisabled}
+              disabled={tier.id === user?.tier || tier.id === 'free' || loading !== null}
+              onClick={() => {
+                if (tier.id === 'standard' || tier.id === 'premium') {
+                  handleUpgrade(tier.id);
+                }
+              }}
             >
-              {tier.cta}
+              {loading === tier.id ? 'Redirecting…' : tier.id === user?.tier ? 'Current plan' : tier.cta}
             </button>
           </div>
         ))}
